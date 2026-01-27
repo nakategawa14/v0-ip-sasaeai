@@ -1,0 +1,471 @@
+export const GENDER_OPTIONS = [
+  { value: "male", label: "男性" },
+  { value: "female", label: "女性" },
+  { value: "other", label: "その他" },
+  { value: "prefer_not_to_say", label: "回答しない" },
+] as const
+
+export const PREFECTURE_OPTIONS = [
+  { value: "hokkaido", label: "北海道" },
+  { value: "aomori", label: "青森県" },
+  { value: "iwate", label: "岩手県" },
+  { value: "miyagi", label: "宮城県" },
+  { value: "akita", label: "秋田県" },
+  { value: "yamagata", label: "山形県" },
+  { value: "fukushima", label: "福島県" },
+  { value: "ibaraki", label: "茨城県" },
+  { value: "tochigi", label: "栃木県" },
+  { value: "gunma", label: "群馬県" },
+  { value: "saitama", label: "埼玉県" },
+  { value: "chiba", label: "千葉県" },
+  { value: "tokyo", label: "東京都" },
+  { value: "kanagawa", label: "神奈川県" },
+  { value: "niigata", label: "新潟県" },
+  { value: "toyama", label: "富山県" },
+  { value: "ishikawa", label: "石川県" },
+  { value: "fukui", label: "福井県" },
+  { value: "yamanashi", label: "山梨県" },
+  { value: "nagano", label: "長野県" },
+  { value: "gifu", label: "岐阜県" },
+  { value: "shizuoka", label: "静岡県" },
+  { value: "aichi", label: "愛知県" },
+  { value: "mie", label: "三重県" },
+  { value: "shiga", label: "滋賀県" },
+  { value: "kyoto", label: "京都府" },
+  { value: "osaka", label: "大阪府" },
+  { value: "hyogo", label: "兵庫県" },
+  { value: "nara", label: "奈良県" },
+  { value: "wakayama", label: "和歌山県" },
+  { value: "tottori", label: "鳥取県" },
+  { value: "shimane", label: "島根県" },
+  { value: "okayama", label: "岡山県" },
+  { value: "hiroshima", label: "広島県" },
+  { value: "yamaguchi", label: "山口県" },
+  { value: "tokushima", label: "徳島県" },
+  { value: "kagawa", label: "香川県" },
+  { value: "ehime", label: "愛媛県" },
+  { value: "kochi", label: "高知県" },
+  { value: "fukuoka", label: "福岡県" },
+  { value: "saga", label: "佐賀県" },
+  { value: "nagasaki", label: "長崎県" },
+  { value: "kumamoto", label: "熊本県" },
+  { value: "oita", label: "大分県" },
+  { value: "miyazaki", label: "宮崎県" },
+  { value: "kagoshima", label: "鹿児島県" },
+  { value: "okinawa", label: "沖縄県" },
+] as const
+
+export const USER_TYPE_OPTIONS = [
+  { value: "person_with_disability", label: "障がいのある方" },
+  { value: "supporter", label: "サポーター" },
+] as const
+
+export const DISABILITY_TYPE_OPTIONS = [
+  { value: "physical", label: "身体障がい" },
+  { value: "intellectual", label: "知的障がい" },
+  { value: "mental", label: "精神障がい" },
+  { value: "developmental", label: "発達障がい" },
+  { value: "chronic_illness", label: "難病・慢性疾患" },
+  { value: "multiple", label: "複数の障がい" },
+  { value: "other", label: "その他" },
+] as const
+
+export const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: "full_time", label: "正社員" },
+  { value: "part_time", label: "パート・アルバイト" },
+  { value: "contract", label: "契約社員・派遣社員" },
+  { value: "self_employed", label: "自営業・フリーランス" },
+  { value: "student", label: "学生" },
+  { value: "unemployed", label: "無職" },
+  { value: "retired", label: "退職・年金生活" },
+  { value: "welfare_workshop", label: "就労継続支援事業所（A型・B型）" },
+  { value: "training", label: "就労移行等で訓練中" },
+  { value: "other", label: "その他" },
+] as const
+
+export const ANNUAL_INCOME_OPTIONS = [
+  { value: "under_2m", label: "200万円未満" },
+  { value: "2m_4m", label: "200万円〜400万円未満" },
+  { value: "4m_6m", label: "400万円〜600万円未満" },
+  { value: "6m_8m", label: "600万円〜800万円未満" },
+  { value: "8m_10m", label: "800万円〜1000万円未満" },
+  { value: "over_10m", label: "1000万円以上" },
+  { value: "prefer_not_to_say", label: "回答しない" },
+] as const
+
+export const LIVING_SITUATION_OPTIONS = [
+  { value: "alone", label: "一人暮らし" },
+  { value: "with_family", label: "家族と同居" },
+  { value: "with_partner", label: "配偶者・パートナーと同居" },
+  { value: "group_home", label: "グループホーム" },
+  { value: "facility", label: "施設入所" },
+  { value: "other", label: "その他" },
+] as const
+
+export const FAMILY_RELATIONSHIP_OPTIONS = [
+  { value: "single", label: "独身" },
+  { value: "married", label: "既婚" },
+  { value: "divorced", label: "離婚" },
+  { value: "widowed", label: "死別" },
+  { value: "prefer_not_to_say", label: "回答しない" },
+] as const
+
+export const YES_NO_OPTIONS = [
+  { value: "yes", label: "はい" },
+  { value: "no", label: "いいえ" },
+] as const
+
+export const AREA_OPTIONS = [
+  { value: "moriya", label: "守谷" },
+  { value: "inzai", label: "印西" },
+  { value: "tsukuba", label: "つくば" },
+  { value: "kashiwa", label: "柏" },
+  { value: "narita", label: "成田" },
+  { value: "abiko", label: "我孫子" },
+] as const
+
+export const PREFECTURE_AREAS: Record<string, Array<{ value: string; label: string }>> = {
+  ibaraki: [
+    { value: "mito", label: "水戸市" },
+    { value: "tsukuba", label: "つくば市" },
+    { value: "moriya", label: "守谷市" },
+    { value: "toride", label: "取手市" },
+    { value: "ushiku", label: "牛久市" },
+    { value: "ryugasaki", label: "龍ケ崎市" },
+    { value: "kasama", label: "笠間市" },
+    { value: "ishioka", label: "石岡市" },
+  ],
+  chiba: [
+    { value: "chiba_city", label: "千葉市" },
+    { value: "kashiwa", label: "柏市" },
+    { value: "narita", label: "成田市" },
+    { value: "abiko", label: "我孫子市" },
+    { value: "inzai", label: "印西市" },
+    { value: "sakura", label: "佐倉市" },
+    { value: "nagareyama", label: "流山市" },
+    { value: "matsudo", label: "松戸市" },
+  ],
+  tokyo: [
+    { value: "chiyoda", label: "千代田区" },
+    { value: "chuo", label: "中央区" },
+    { value: "minato", label: "港区" },
+    { value: "shinjuku", label: "新宿区" },
+    { value: "shibuya", label: "渋谷区" },
+    { value: "setagaya", label: "世田谷区" },
+    { value: "tachikawa", label: "立川市" },
+    { value: "hachioji", label: "八王子市" },
+  ],
+  kanagawa: [
+    { value: "yokohama", label: "横浜市" },
+    { value: "kawasaki", label: "川崎市" },
+    { value: "sagamihara", label: "相模原市" },
+    { value: "fujisawa", label: "藤沢市" },
+    { value: "yokosuka", label: "横須賀市" },
+    { value: "kamakura", label: "鎌倉市" },
+  ],
+  saitama: [
+    { value: "saitama_city", label: "さいたま市" },
+    { value: "kawagoe", label: "川越市" },
+    { value: "kawaguchi", label: "川口市" },
+    { value: "tokorozawa", label: "所沢市" },
+    { value: "kasukabe", label: "春日部市" },
+  ],
+  osaka: [
+    { value: "osaka_city", label: "大阪市" },
+    { value: "sakai", label: "堺市" },
+    { value: "toyonaka", label: "豊中市" },
+    { value: "suita", label: "吹田市" },
+    { value: "takatsuki", label: "高槻市" },
+  ],
+  kyoto: [
+    { value: "kyoto_city", label: "京都市" },
+    { value: "uji", label: "宇治市" },
+    { value: "joyo", label: "城陽市" },
+  ],
+  hyogo: [
+    { value: "kobe", label: "神戸市" },
+    { value: "himeji", label: "姫路市" },
+    { value: "nishinomiya", label: "西宮市" },
+    { value: "amagasaki", label: "尼崎市" },
+  ],
+  fukuoka: [
+    { value: "fukuoka_city", label: "福岡市" },
+    { value: "kitakyushu", label: "北九州市" },
+    { value: "kurume", label: "久留米市" },
+  ],
+  hokkaido: [
+    { value: "sapporo", label: "札幌市" },
+    { value: "hakodate", label: "函館市" },
+    { value: "asahikawa", label: "旭川市" },
+  ],
+  aichi: [
+    { value: "nagoya", label: "名古屋市" },
+    { value: "toyohashi", label: "豊橋市" },
+    { value: "okazaki", label: "岡崎市" },
+    { value: "toyota", label: "豊田市" },
+  ],
+}
+
+export const PREFECTURE_REGIONS: Record<string, Array<{ value: string; label: string }>> = {
+  hokkaido: [
+    { value: "central", label: "道央" },
+    { value: "south", label: "道南" },
+    { value: "north", label: "道北" },
+    { value: "east", label: "道東" },
+  ],
+  aomori: [
+    { value: "tsugaru", label: "津軽" },
+    { value: "nanbu", label: "南部" },
+    { value: "shimokita", label: "下北" },
+  ],
+  iwate: [
+    { value: "north", label: "県北" },
+    { value: "central", label: "県央" },
+    { value: "coast", label: "沿岸" },
+    { value: "south", label: "県南" },
+  ],
+  miyagi: [
+    { value: "sendai", label: "仙台" },
+    { value: "north", label: "県北" },
+    { value: "south", label: "県南" },
+    { value: "sanriku", label: "三陸沿岸" },
+  ],
+  akita: [
+    { value: "north", label: "県北" },
+    { value: "central", label: "中央" },
+    { value: "south", label: "県南" },
+  ],
+  yamagata: [
+    { value: "murayama", label: "村山" },
+    { value: "mogami", label: "最上" },
+    { value: "okitama", label: "置賜" },
+    { value: "shonai", label: "庄内" },
+  ],
+  fukushima: [
+    { value: "aizu", label: "会津" },
+    { value: "nakadori", label: "中通り" },
+    { value: "hamadori", label: "浜通り" },
+  ],
+  ibaraki: [
+    { value: "north", label: "県北" },
+    { value: "central", label: "県央" },
+    { value: "south", label: "県南" },
+    { value: "west", label: "県西" },
+    { value: "rokko", label: "鹿行" },
+  ],
+  tochigi: [
+    { value: "north", label: "県北" },
+    { value: "central", label: "県央" },
+    { value: "south", label: "県南" },
+  ],
+  gunma: [
+    { value: "hokumo", label: "北毛" },
+    { value: "chumo", label: "中毛" },
+    { value: "tomo", label: "東毛" },
+    { value: "seiomo", label: "西毛" },
+  ],
+  saitama: [
+    { value: "north", label: "北部" },
+    { value: "south", label: "南部" },
+    { value: "west", label: "西部" },
+    { value: "east", label: "東部" },
+    { value: "chichibu", label: "秩父" },
+  ],
+  chiba: [
+    { value: "northwest", label: "北西部" },
+    { value: "northeast", label: "北東部" },
+    { value: "south", label: "南部" },
+  ],
+  tokyo: [
+    { value: "23ku", label: "23区" },
+    { value: "tama", label: "多摩" },
+    { value: "islands", label: "島しょ部" },
+  ],
+  kanagawa: [
+    { value: "yokohama_kawasaki", label: "横浜・川崎" },
+    { value: "central", label: "県央" },
+    { value: "shonan", label: "湘南" },
+    { value: "west", label: "県西" },
+  ],
+  niigata: [
+    { value: "joetsu", label: "上越" },
+    { value: "chuetsu", label: "中越" },
+    { value: "kaetsu", label: "下越" },
+    { value: "sado", label: "佐渡" },
+  ],
+  toyama: [
+    { value: "goto", label: "呉東" },
+    { value: "gosei", label: "呉西" },
+  ],
+  ishikawa: [
+    { value: "noto", label: "能登" },
+    { value: "kaga", label: "加賀" },
+  ],
+  fukui: [
+    { value: "reihoku", label: "嶺北" },
+    { value: "reinan", label: "嶺南" },
+  ],
+  yamanashi: [
+    { value: "kyoto", label: "峡東" },
+    { value: "kyochu", label: "峡中" },
+    { value: "kyonan", label: "峡南" },
+    { value: "fuji_east", label: "富士・東部" },
+  ],
+  nagano: [
+    { value: "hokushin", label: "北信" },
+    { value: "chushin", label: "中信" },
+    { value: "toshin", label: "東信" },
+    { value: "nanshin", label: "南信" },
+  ],
+  gifu: [
+    { value: "hida", label: "飛騨" },
+    { value: "mino", label: "美濃" },
+  ],
+  shizuoka: [
+    { value: "east", label: "東部" },
+    { value: "central", label: "中部" },
+    { value: "west", label: "西部" },
+  ],
+  aichi: [
+    { value: "owari", label: "尾張" },
+    { value: "nishi_mikawa", label: "西三河" },
+    { value: "higashi_mikawa", label: "東三河" },
+  ],
+  mie: [
+    { value: "hokusei", label: "北勢" },
+    { value: "chusei", label: "中勢" },
+    { value: "nansei", label: "南勢" },
+    { value: "iga", label: "伊賀" },
+    { value: "higashi_kishu", label: "東紀州" },
+  ],
+  shiga: [
+    { value: "koto", label: "湖東" },
+    { value: "kosei", label: "湖西" },
+    { value: "konan", label: "湖南" },
+    { value: "kohoku", label: "湖北" },
+  ],
+  kyoto: [
+    { value: "south", label: "南部" },
+    { value: "yamashiro", label: "山城" },
+    { value: "central", label: "中部" },
+    { value: "tango", label: "丹後" },
+  ],
+  osaka: [
+    { value: "north", label: "北部" },
+    { value: "central", label: "中部" },
+    { value: "south", label: "南部" },
+  ],
+  hyogo: [
+    { value: "harima", label: "播磨" },
+    { value: "tajima", label: "但馬" },
+    { value: "tanba", label: "丹波" },
+    { value: "awaji", label: "淡路" },
+    { value: "kobe", label: "神戸" },
+  ],
+  nara: [
+    { value: "north", label: "北部" },
+    { value: "central", label: "中部" },
+    { value: "south", label: "南部" },
+  ],
+  wakayama: [
+    { value: "north", label: "北部" },
+    { value: "central", label: "中部" },
+    { value: "south", label: "南部" },
+  ],
+  tottori: [
+    { value: "east", label: "東部" },
+    { value: "central", label: "中部" },
+    { value: "west", label: "西部" },
+  ],
+  shimane: [
+    { value: "izumo", label: "出雲" },
+    { value: "iwami", label: "石見" },
+    { value: "oki", label: "隠岐" },
+  ],
+  okayama: [
+    { value: "bizen", label: "備前" },
+    { value: "bitchu", label: "備中" },
+    { value: "mimasaka", label: "美作" },
+  ],
+  hiroshima: [
+    { value: "bingo", label: "備後" },
+    { value: "aki", label: "安芸" },
+  ],
+  yamaguchi: [
+    { value: "shunan", label: "周南" },
+    { value: "yamaguchi_hofu", label: "山口・防府" },
+    { value: "shimonoseki", label: "下関" },
+    { value: "iwakuni", label: "岩国" },
+    { value: "nagato", label: "長門" },
+  ],
+  tokushima: [
+    { value: "north", label: "北部" },
+    { value: "south", label: "南部" },
+  ],
+  kagawa: [
+    { value: "tozan", label: "東讃" },
+    { value: "chuzan", label: "中讃" },
+    { value: "seizan", label: "西讃" },
+    { value: "shodoshima", label: "小豆島" },
+  ],
+  ehime: [
+    { value: "toyo", label: "東予" },
+    { value: "chuyo", label: "中予" },
+    { value: "nanyo", label: "南予" },
+  ],
+  kochi: [
+    { value: "central", label: "中部" },
+    { value: "east", label: "東部" },
+    { value: "west", label: "西部" },
+  ],
+  fukuoka: [
+    { value: "kitakyushu", label: "北九州" },
+    { value: "fukuoka", label: "福岡" },
+    { value: "chikuho", label: "筑豊" },
+    { value: "chikugo", label: "筑後" },
+  ],
+  saga: [
+    { value: "north", label: "北部" },
+    { value: "south", label: "南部" },
+  ],
+  nagasaki: [
+    { value: "nagasaki", label: "長崎" },
+    { value: "sasebo", label: "佐世保" },
+    { value: "shimabara", label: "島原" },
+    { value: "goto", label: "五島" },
+    { value: "iki_tsushima", label: "壱岐・対馬" },
+  ],
+  kumamoto: [
+    { value: "kumamoto", label: "熊本" },
+    { value: "aso", label: "阿蘇" },
+    { value: "amakusa", label: "天草" },
+    { value: "north", label: "県北" },
+    { value: "south", label: "県南" },
+  ],
+  oita: [
+    { value: "north", label: "北部" },
+    { value: "central", label: "中部" },
+    { value: "south", label: "南部" },
+    { value: "west", label: "西部" },
+  ],
+  miyazaki: [
+    { value: "north", label: "北部" },
+    { value: "central", label: "中央" },
+    { value: "south", label: "南部" },
+  ],
+  kagoshima: [
+    { value: "hokusatsu", label: "北薩" },
+    { value: "chusatsu", label: "中薩" },
+    { value: "nansatsu", label: "南薩" },
+    { value: "osumi", label: "大隅" },
+    { value: "amami", label: "奄美群島" },
+    { value: "tanegashima_yakushima", label: "種子島・屋久島" },
+  ],
+  okinawa: [
+    { value: "north", label: "本島北部" },
+    { value: "central", label: "中部" },
+    { value: "south", label: "南部" },
+    { value: "miyako", label: "宮古" },
+    { value: "yaeyama", label: "八重山" },
+  ],
+}
