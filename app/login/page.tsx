@@ -3,7 +3,9 @@ import { Card } from "@/components/ui/card"
 import { Heart } from "lucide-react"
 import Link from "next/link"
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ blocked?: string }> }) {
+  const sp = await searchParams
+  const blockedNotice = sp.blocked === "1" || sp.blocked === "true"
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 via-white to-blue-50 p-4">
       <Card className="w-full max-w-md p-8">
@@ -14,7 +16,7 @@ export default function LoginPage() {
           </Link>
           <p className="mt-2 text-gray-600">アカウントにログイン</p>
         </div>
-        <LoginForm />
+        <LoginForm blockedNotice={blockedNotice} />
         <div className="mt-6 text-center text-sm text-gray-600">
           アカウントをお持ちでない方は
           <Link href="/signup" className="ml-1 font-semibold text-pink-600 hover:text-pink-700">
