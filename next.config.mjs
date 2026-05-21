@@ -17,6 +17,10 @@ export default withPWA({
   customWorkerSrc: 'worker',
   runtimeCaching: [
     {
+      urlPattern: ({ url }) => url.pathname.startsWith('/admin'),
+      handler: 'NetworkOnly',
+    },
+    {
       urlPattern: /^https?.*/,
       handler: 'NetworkFirst',
       options: {

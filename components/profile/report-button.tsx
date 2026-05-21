@@ -89,7 +89,7 @@ export function ReportButton({ profileId, variant = "ghost", size = "default", c
       } else {
         toast({
           title: "報告を受け付けました",
-          description: result.message,
+          description: result.message ?? "管理人に通知しました。確認までお待ちください。",
         })
         setOpen(false)
         setDescription("")

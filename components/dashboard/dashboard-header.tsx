@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
 import { RealtimeNotifications } from "@/components/notifications/realtime-notifications"
+import { HelpSettingsMenu } from "@/components/dashboard/help-settings-menu"
 
 interface DashboardHeaderProps {
   profile: {
@@ -72,7 +73,8 @@ export function DashboardHeader({ profile, initialUnreadCount = 0 }: DashboardHe
             </Link>
           </nav>
 
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
+            <HelpSettingsMenu />
             {profile?.id && <RealtimeNotifications userId={profile.id} initialUnreadCount={initialUnreadCount} />}
             {membershipStatus === "free" && (
               <Link href="/upgrade">
@@ -86,9 +88,12 @@ export function DashboardHeader({ profile, initialUnreadCount = 0 }: DashboardHe
             </Button>
           </div>
 
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          <div className="flex items-center gap-1 md:hidden">
+            <HelpSettingsMenu />
+            <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
         </div>
 
         {mobileMenuOpen && (

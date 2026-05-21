@@ -19,8 +19,8 @@ export function SuspensionCheckWrapper({ children }: { children: React.ReactNode
   const [isChecking, setIsChecking] = useState(true)
 
   useEffect(() => {
-    // 停止ページや認証ページではチェックしない
-    if (pathname === "/suspended" || pathname === "/login" || pathname === "/signup" || pathname.startsWith("/auth")) {
+    // 停止ページ・OAuth コールバックではサスペンション UI に任せる／ループ回避
+    if (pathname === "/suspended" || pathname.startsWith("/auth")) {
       setIsChecking(false)
       return
     }
@@ -32,6 +32,20 @@ export function SuspensionCheckWrapper({ children }: { children: React.ReactNode
       } = await supabase.auth.getUser()
 
       if (!user) {
+        setIsChecking(false)
+        return
+      }
+
+      const { data: profileRow } = await supabase
+        .from(TABLES.PROFILES)
+        .select("status")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (profileRow?.status === "blocked") {
+        await supabase.auth.signOut()
+        router.replace("/login?blocked=1")
+        setSuspension(null)
         setIsChecking(false)
         return
       }
@@ -64,7 +78,7 @@ export function SuspensionCheckWrapper({ children }: { children: React.ReactNode
       setIsChecking(false)
     }
 
-    checkSuspension()
+    void checkSuspension()
   }, [pathname, router])
 
   // チェック中はローディング表示

@@ -5,10 +5,19 @@ export async function sendEmail({
   to,
   subject,
   html,
+  fromEmail,
+  fromName,
+  replyTo,
 }: {
   to: string
   subject: string
   html: string
+  /** 未指定時は MAILERSEND_FROM_EMAIL または noreply@sasaeai.help（送信ドメインは MailerSend で検証済みであること） */
+  fromEmail?: string
+  /** 表示名（例: 運営事務局名義） */
+  fromName?: string
+  /** 返信先（運営の連絡先メール等） */
+  replyTo?: { email: string; name?: string }
 }) {
   // MailerSend APIを使用
   const apiKey = process.env.MAILERSEND_API_KEY
@@ -17,22 +26,30 @@ export async function sendEmail({
     return { success: false, error: "メール設定がありません" }
   }
 
+  const fromAddr = fromEmail ?? process.env.MAILERSEND_FROM_EMAIL ?? "noreply@sasaeai.help"
+  const fromDisplay = fromName ?? "ささえ愛"
+
   try {
+    const payload: Record<string, unknown> = {
+      from: {
+        email: fromAddr,
+        name: fromDisplay,
+      },
+      to: [{ email: to }],
+      subject,
+      html,
+    }
+    if (replyTo?.email) {
+      payload.reply_to = { email: replyTo.email, name: replyTo.name ?? "" }
+    }
+
     const response = await fetch("https://api.mailersend.com/v1/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        from: {
-          email: "noreply@sasaeai.help",
-          name: "ささえ愛",
-        },
-        to: [{ email: to }],
-        subject,
-        html,
-      }),
+      body: JSON.stringify(payload),
     })
 
     if (!response.ok) {

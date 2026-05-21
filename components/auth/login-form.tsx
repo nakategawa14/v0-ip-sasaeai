@@ -5,13 +5,14 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { TABLES } from "@/lib/supabase/table-names"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert } from "@/components/ui/alert"
 import { isWhitelisted, MAINTENANCE_MODE } from "@/lib/config/maintenance"
 
-export function LoginForm() {
+export function LoginForm({ blockedNotice = false }: { blockedNotice?: boolean }) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -45,6 +46,12 @@ export function LoginForm() {
       }
 
       if (data.user) {
+        const { data: prof } = await supabase.from(TABLES.PROFILES).select("status").eq("id", data.user.id).maybeSingle()
+        if (prof?.status === "blocked") {
+          await supabase.auth.signOut()
+          setError("このアカウントは管理者により利用停止されています。お問い合わせはサポートまでご連絡ください。")
+          return
+        }
         router.push("/dashboard")
         router.refresh()
       }
@@ -57,6 +64,11 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
+      {blockedNotice && (
+        <Alert variant="destructive">
+          このアカウントは利用を停止されています。ご不明点はサポートまでお問い合わせください。
+        </Alert>
+      )}
       {error && <Alert variant="destructive">{error}</Alert>}
 
       <div className="space-y-2">

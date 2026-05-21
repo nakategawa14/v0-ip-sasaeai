@@ -33,7 +33,7 @@ export async function issueWarning({ userId, reason, severity, relatedReportId, 
     .eq("id", user.id)
     .single()
 
-  if (!adminProfile?.is_admin) {
+  if (!adminProfile || adminProfile.is_admin !== true) {
     return { error: "管理者権限が必要です" }
   }
 

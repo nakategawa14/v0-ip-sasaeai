@@ -1,5 +1,6 @@
 "use server"
 
+import { isSasaeaiAdmin } from "@/lib/admin/auth"
 import { createClient } from "@/lib/supabase/server"
 import { TABLES } from "@/lib/supabase/table-names"
 import { revalidatePath } from "next/cache"
@@ -39,7 +40,10 @@ export async function createReport(data: {
     return { success: false, error: "通報の送信に失敗しました" }
   }
 
-  return { success: true }
+  return {
+    success: true,
+    message: "管理人に通知しました。確認までお待ちください。",
+  }
 }
 
 // ユーザーをブロック
@@ -160,32 +164,42 @@ export async function getReports(status?: string) {
   }
 
   // 管理者チェック
-  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("user_id", user.id).single()
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
 
-  if (!profile?.is_admin) {
+  if (!isSasaeaiAdmin(profile)) {
     return { success: false, error: "管理者権限が必要です", data: [] }
   }
 
-  let query = supabase.from(TABLES.REPORTS).select(
-    `
+  const statusFilter = typeof status === "string" ? status.trim() || undefined : undefined
+
+  const embedSelect = `
       *,
       reporter:sasaeai_profiles!sasaeai_reports_reporter_id_fkey(user_id, nickname, profile_images),
       reported_user:sasaeai_profiles!sasaeai_reports_reported_user_id_fkey(user_id, nickname, profile_images)
-    `,
-  )
+    `
 
-  if (status) {
-    query = query.eq("status", status)
+  let query = supabase.from(TABLES.REPORTS).select(embedSelect)
+  if (statusFilter) {
+    query = query.eq("status", statusFilter)
   }
 
-  const { data, error } = await query.order("created_at", { ascending: false })
+  const { data: withEmbeds, error: embedError } = await query.order("created_at", { ascending: false })
 
-  if (error) {
-    console.error("[v0] Error fetching reports:", error)
-    return { success: false, error: "通報一覧の取得に失敗しました", data: [] }
+  if (embedError) {
+    console.warn("[getReports] embed select failed, retry without join:", embedError.message)
+    let q2 = supabase.from(TABLES.REPORTS).select("*")
+    if (statusFilter) {
+      q2 = q2.eq("status", statusFilter)
+    }
+    const { data: rows, error: err2 } = await q2.order("created_at", { ascending: false })
+    if (err2) {
+      console.error("[v0] Error fetching reports:", err2)
+      return { success: false, error: "通報一覧の取得に失敗しました", data: [] }
+    }
+    return { success: true, data: rows || [] }
   }
 
-  return { success: true, data: data || [] }
+  return { success: true, data: withEmbeds || [] }
 }
 
 // 管理者：通報ステータス更新
@@ -204,9 +218,9 @@ export async function updateReportStatus(
   }
 
   // 管理者チェック
-  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("user_id", user.id).single()
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
 
-  if (!profile?.is_admin) {
+  if (!isSasaeaiAdmin(profile)) {
     return { success: false, error: "管理者権限が必要です" }
   }
 
@@ -224,7 +238,8 @@ export async function updateReportStatus(
     return { success: false, error: "通報ステータスの更新に失敗しました" }
   }
 
-  revalidatePath("/admin/reports")
+  // 一覧の revalidate は詳細ページ滞在中にルーターが一覧へ戻る原因になるため、詳細のみ無効化する
+  revalidatePath(`/admin/reports/${reportId}`, "page")
   return { success: true }
 }
 
@@ -245,9 +260,9 @@ export async function banUser(data: {
   }
 
   // 管理者チェック
-  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("user_id", user.id).single()
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
 
-  if (!profile?.is_admin) {
+  if (!isSasaeaiAdmin(profile)) {
     return { success: false, error: "管理者権限が必要です" }
   }
 
@@ -281,9 +296,9 @@ export async function unbanUser(banId: string) {
   }
 
   // 管理者チェック
-  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("user_id", user.id).single()
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
 
-  if (!profile?.is_admin) {
+  if (!isSasaeaiAdmin(profile)) {
     return { success: false, error: "管理者権限が必要です" }
   }
 
@@ -296,5 +311,77 @@ export async function unbanUser(banId: string) {
 
   revalidatePath("/admin/reports")
   revalidatePath("/group-chat")
+  return { success: true }
+}
+
+/** 管理者：対象ユーザーをプラットフォームブロック（status=blocked + is_active=false） */
+export async function adminBlockUser(userId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: "ログインが必要です" }
+  }
+  if (user.id === userId) {
+    return { success: false, error: "自分自身をブロックできません" }
+  }
+
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
+  if (!isSasaeaiAdmin(profile)) {
+    return { success: false, error: "管理者権限が必要です" }
+  }
+
+  const { error } = await supabase
+    .from(TABLES.PROFILES)
+    .update({
+      status: "blocked",
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+
+  if (error) {
+    console.error("[adminBlockUser]", error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath("/admin/users")
+  revalidatePath(`/admin/users/${userId}`)
+  revalidatePath("/admin/reports")
+  return { success: true }
+}
+
+/** 管理者：ブロック解除（status=active + is_active=true） */
+export async function adminUnblockUser(userId: string) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: "ログインが必要です" }
+  }
+
+  const { data: profile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).single()
+  if (!isSasaeaiAdmin(profile)) {
+    return { success: false, error: "管理者権限が必要です" }
+  }
+
+  const { error } = await supabase
+    .from(TABLES.PROFILES)
+    .update({
+      status: "active",
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+
+  if (error) {
+    console.error("[adminUnblockUser]", error)
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath("/admin/users")
+  revalidatePath(`/admin/users/${userId}`)
   return { success: true }
 }

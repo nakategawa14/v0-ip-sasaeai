@@ -1,0 +1,12 @@
+# Supabase CLI 用（`supabase db push` / `supabase link` / Functions デプロイ先の既定）。
+# 次行の project_id は、sasaeai-mobile/.env の EXPO_PUBLIC_SUPABASE_URL のホスト名と一致させています。
+# ダッシュボード: Settings → General → Reference ID が同じか確認してください。
+project_id = "lootaipbvvzkqbxoniqx"
+
+# ローカル検証: supabase functions serve admin-notify --env-file supabase/.env.local
+
+[api]
+enabled = true
+
+[functions.admin-notify]
+verify_jwt = false

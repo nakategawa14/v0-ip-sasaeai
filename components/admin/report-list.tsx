@@ -20,8 +20,10 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { updateReportStatus, banUser, type BanType } from "@/lib/actions/moderation"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, Ban, CheckCircle, XCircle } from "lucide-react"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface Report {
   id: string
@@ -35,14 +37,16 @@ interface Report {
   admin_notes: string | null
   created_at: string
   reporter?: {
-    user_id: string
-    nickname: string
-    profile_images: string | string[]
+    id?: string
+    user_id?: string
+    nickname?: string
+    profile_images?: string | string[]
   }
   reported_user?: {
-    user_id: string
-    nickname: string
-    profile_images: string | string[]
+    id?: string
+    user_id?: string
+    nickname?: string
+    profile_images?: string | string[]
   }
 }
 
@@ -62,6 +66,15 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const refreshReportsList = () => {
+    const query = searchParams.toString()
+    const href = query ? `${pathname}?${query}` : pathname
+    router.replace(href)
+    router.refresh()
+  }
 
   const getProfileImage = (profileImages: string | string[] | undefined) => {
     if (!profileImages) return undefined
@@ -119,7 +132,8 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
         title: "ステータスを更新しました",
       })
       setReviewDialogOpen(false)
-      router.refresh()
+      setSelectedReport(null)
+      refreshReportsList()
     } else {
       toast({
         title: "エラー",
@@ -151,7 +165,8 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
         title: "BANを実施しました",
       })
       setBanDialogOpen(false)
-      router.refresh()
+      setSelectedReport(null)
+      refreshReportsList()
     } else {
       toast({
         title: "エラー",
@@ -188,6 +203,8 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
       <div className="space-y-4">
         {reports && reports.length > 0 ? (
           reports.map((report) => {
+            const reportId = typeof report.id === "string" ? report.id.trim() : ""
+            const detailHref = reportId ? `/admin/reports/${reportId}` : ""
             const reporterImage = getProfileImage(report.reporter?.profile_images)
             const reportedImage = getProfileImage(report.reported_user?.profile_images)
 
@@ -254,13 +271,25 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleReview(report)}>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
+                    {report.id ? report.id : "IDがありません"}
+                  </span>
+                  {detailHref ? (
+                    <Link href={detailHref} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                      詳細ページ
+                    </Link>
+                  ) : (
+                    <Button variant="outline" size="sm" disabled>
+                      詳細ページ（IDなし）
+                    </Button>
+                  )}
+                  <Button type="button" variant="outline" size="sm" onClick={() => handleReview(report)}>
                     <CheckCircle className="h-4 w-4 mr-2" />
                     確認・対応
                   </Button>
                   {report.status === "pending" && (
-                    <Button variant="destructive" size="sm" onClick={() => handleBan(report)}>
+                    <Button type="button" variant="destructive" size="sm" onClick={() => handleBan(report)}>
                       <Ban className="h-4 w-4 mr-2" />
                       BANする
                     </Button>
@@ -299,14 +328,24 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
               </div>
 
               <DialogFooter className="flex gap-2">
-                <Button variant="outline" onClick={() => handleUpdateStatus("dismissed")} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void handleUpdateStatus("dismissed")}
+                  disabled={isSubmitting}
+                >
                   <XCircle className="h-4 w-4 mr-2" />
                   却下
                 </Button>
-                <Button variant="secondary" onClick={() => handleUpdateStatus("reviewed")} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void handleUpdateStatus("reviewed")}
+                  disabled={isSubmitting}
+                >
                   確認済みにする
                 </Button>
-                <Button onClick={() => handleUpdateStatus("action_taken")} disabled={isSubmitting}>
+                <Button type="button" onClick={() => void handleUpdateStatus("action_taken")} disabled={isSubmitting}>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   対応済みにする
                 </Button>
@@ -371,10 +410,20 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setBanDialogOpen(false)} disabled={isSubmitting}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setBanDialogOpen(false)}
+                  disabled={isSubmitting}
+                >
                   キャンセル
                 </Button>
-                <Button onClick={handleBanUser} disabled={isSubmitting || !banReason.trim()} variant="destructive">
+                <Button
+                  type="button"
+                  onClick={() => void handleBanUser()}
+                  disabled={isSubmitting || !banReason.trim()}
+                  variant="destructive"
+                >
                   {isSubmitting ? "処理中..." : "BANを実施"}
                 </Button>
               </DialogFooter>

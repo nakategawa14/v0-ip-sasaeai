@@ -12,12 +12,17 @@ import { Alert } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Ban, CheckCircle } from "lucide-react"
 import { TABLES } from "@/lib/supabase/table-names"
+import { adminUnblockUser } from "@/lib/actions/moderation"
+import { BlockUserButton } from "@/components/admin/block-user-button"
 
 export function AdminUserActions({ user }: { user: any }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [unblockBusy, setUnblockBusy] = useState(false)
+
+  const platformBlocked = user?.status === "blocked"
 
   const [suspensionReason, setSuspensionReason] = useState("")
   const [suspensionDetails, setSuspensionDetails] = useState("")
@@ -154,6 +159,20 @@ export function AdminUserActions({ user }: { user: any }) {
     }
   }
 
+  const handlePlatformUnblock = async () => {
+    setError(null)
+    setSuccess(null)
+    setUnblockBusy(true)
+    const res = await adminUnblockUser(user.id)
+    setUnblockBusy(false)
+    if (!res.success) {
+      setError(res.error ?? "ブロック解除に失敗しました")
+      return
+    }
+    setSuccess("プラットフォームブロックを解除しました")
+    router.refresh()
+  }
+
   return (
     <Card className="p-6">
       <h2 className="mb-4 text-xl font-semibold">管理者アクション</h2>
@@ -166,7 +185,17 @@ export function AdminUserActions({ user }: { user: any }) {
 
       {success && <Alert className="mb-4 border-green-500 bg-green-50 text-green-900">{success}</Alert>}
 
-      {user.is_active ? (
+      {platformBlocked ? (
+        <div className="space-y-4">
+          <Alert variant="destructive">
+            このユーザーは <strong>status: blocked</strong> のため、アプリからアクセスできません。
+          </Alert>
+          <Button onClick={() => void handlePlatformUnblock()} disabled={unblockBusy} className="w-full">
+            <CheckCircle className="mr-2 h-4 w-4" />
+            {unblockBusy ? "処理中…" : "プラットフォームブロックを解除"}
+          </Button>
+        </div>
+      ) : user.is_active ? (
         <div className="space-y-4">
           <div>
             <Label htmlFor="suspensionReason">停止理由</Label>
@@ -220,6 +249,13 @@ export function AdminUserActions({ user }: { user: any }) {
             <Ban className="mr-2 h-4 w-4" />
             ユーザーを停止
           </Button>
+
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground mb-2">
+              通報対応などで利用停止する場合は「ブロック」。停止（上）とは別に、<strong>status</strong> を blocked にします。
+            </p>
+            <BlockUserButton userId={user.id} userLabel={user.nickname || user.display_name || user.id} className="w-full" />
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

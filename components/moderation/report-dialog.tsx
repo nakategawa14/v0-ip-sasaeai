@@ -63,7 +63,7 @@ export function ReportDialog({
     if (result.success) {
       toast({
         title: "通報を送信しました",
-        description: "運営チームが確認し、適切に対応いたします",
+        description: result.message ?? "管理人に通知しました。確認までお待ちください。",
       })
       onOpenChange(false)
       setReportReason("")

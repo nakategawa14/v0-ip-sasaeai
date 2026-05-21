@@ -40,7 +40,7 @@ export async function reportUser(reportedUserId: string, reportType: ReportType,
   revalidatePath(`/profile/${reportedUserId}`)
   revalidatePath("/admin/reports")
 
-  return { success: true, message: "報告を受け付けました。管理者が確認します。" }
+  return { success: true, message: "管理人に通知しました。確認までお待ちください。" }
 }
 
 export async function getMyReports() {
@@ -86,8 +86,8 @@ export async function updateReportStatus(
     return { error: "認証が必要です" }
   }
 
-  // 管理者チェック（簡易版：email確認）
-  if (user.email !== "nurekoinu-shop1@yahoo.co.jp") {
+  const { data: adminProfile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).maybeSingle()
+  if (!adminProfile || adminProfile.is_admin !== true) {
     return { error: "管理者権限が必要です" }
   }
 
@@ -127,8 +127,8 @@ export async function getAllReports() {
     return { error: "認証が必要です", reports: [] }
   }
 
-  // 管理者チェック（簡易版：email確認）
-  if (user.email !== "nurekoinu-shop1@yahoo.co.jp") {
+  const { data: adminProfile } = await supabase.from(TABLES.PROFILES).select("is_admin").eq("id", user.id).maybeSingle()
+  if (!adminProfile || adminProfile.is_admin !== true) {
     return { error: "管理者権限が必要です", reports: [] }
   }
 
