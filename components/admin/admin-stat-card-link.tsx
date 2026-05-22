@@ -1,34 +1,43 @@
-"use client"
-
 import Link from "next/link"
 import type { ReactNode } from "react"
+import { isValidReportId } from "@/lib/admin/auth"
 
 type Props = {
   href: string
   children: ReactNode
 }
 
-/** admin 配下への遷移のみ許可（誤って /dashboard 等へ飛ばない） */
-function sanitizeAdminHref(href: string): string {
-  const trimmed = href.trim()
+/**
+ * 管理ダッシュボード KPI 用 href の正規化。
+ * 不正な値で /admin に戻らないよう、通報系は一覧 /admin/reports にフォールバックする。
+ */
+export function normalizeAdminStatHref(href: string): string {
+  const trimmed = (href ?? "").trim()
+
   if (!trimmed.startsWith("/admin")) {
-    return "/admin"
+    return "/admin/reports"
   }
-  if (trimmed.includes("/admin/reports/")) {
-    const segment = trimmed.split("/admin/reports/")[1]?.split("?")[0]?.split("/")[0] ?? ""
-    if (segment && !/^[0-9a-f-]{36}$/i.test(segment)) {
-      return "/admin/reports?status=pending"
+
+  if (trimmed === "/admin/reports" || trimmed.startsWith("/admin/reports?")) {
+    return trimmed
+  }
+
+  if (trimmed.startsWith("/admin/reports/")) {
+    const segment = trimmed.slice("/admin/reports/".length).split("?")[0]?.split("/")[0] ?? ""
+    if (segment && isValidReportId(segment)) {
+      return trimmed
     }
+    return "/admin/reports?status=pending"
   }
+
   return trimmed
 }
 
 /**
- * 管理ダッシュボードの KPI カード用リンク。
- * Next.js Link でサーバー遷移し、href を admin 配下に限定する。
+ * 管理ダッシュボードの KPI カード用リンク（Server Component から渡す href をそのまま使用可能）。
  */
 export function AdminStatCardLink({ href, children }: Props) {
-  const safeHref = sanitizeAdminHref(href)
+  const safeHref = normalizeAdminStatHref(href)
 
   return (
     <Link
