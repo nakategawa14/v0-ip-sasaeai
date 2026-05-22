@@ -4,11 +4,7 @@ import { Card } from "@/components/ui/card"
 import { Users, Shield, Flag, TrendingUp, MessageSquare, Ban, UserPlus, Eye, Heart, Mail } from "lucide-react"
 import Link from "next/link"
 import { AdminStatCardLink } from "@/components/admin/admin-stat-card-link"
-import {
-  buildPendingReportCardHref,
-  fetchAdminHeaderProfile,
-  fetchLatestPendingReportId,
-} from "@/lib/admin/auth"
+import { fetchAdminHeaderProfile } from "@/lib/admin/auth"
 import { TABLES } from "@/lib/supabase/table-names"
 
 export default async function AdminDashboardPage() {
@@ -34,8 +30,6 @@ export default async function AdminDashboardPage() {
     .from(TABLES.REPORTS)
     .select("*", { count: "exact", head: true })
     .eq("status", "pending")
-
-  const latestPendingReportId = user ? await fetchLatestPendingReportId(user.id) : null
 
   let totalMatches = 0
   let newMatchesToday = 0
@@ -185,7 +179,8 @@ export default async function AdminDashboardPage() {
       icon: Flag,
       color: "text-red-600",
       bgColor: "bg-red-50",
-      href: buildPendingReportCardHref(latestPendingReportId),
+      href:
+        pendingReports && pendingReports > 0 ? "/admin/reports?status=pending" : "/admin/reports",
     },
     {
       title: "総マッチ数",

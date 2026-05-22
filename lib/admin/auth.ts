@@ -116,10 +116,6 @@ export async function fetchLatestPendingReportId(adminUserId: string): Promise<s
   }
 }
 
-/** KPI カード用の安全な href */
-export function buildPendingReportCardHref(pendingReportId: string | null): string {
-  if (pendingReportId && isValidReportId(pendingReportId)) {
-    return `/admin/reports/${pendingReportId}`
-  }
-  return "/admin/reports?status=pending"
-}
+/** 未処理通報 KPI カード用（通報管理一覧へ） */
+export const ADMIN_PENDING_REPORTS_HREF = "/admin/reports?status=pending"
+export const ADMIN_REPORTS_HREF = "/admin/reports"
