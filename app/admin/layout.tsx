@@ -1,38 +1,16 @@
 import type React from "react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
-import { TABLES } from "@/lib/supabase/table-names"
+import { requireAdminLayoutSession } from "@/lib/admin/auth"
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const { data: profile } = await supabase
-    .from(TABLES.PROFILES)
-    .select("is_admin, nickname, email")
-    .eq("id", user.id)
-    .maybeSingle()
-
-  // sasaeai_profiles に role 列はなく、is_admin (boolean) のみで判定
-  if (!profile || profile.is_admin !== true) {
-    redirect("/dashboard")
-  }
+  await requireAdminLayoutSession()
 
   return (
     <div className="flex min-h-screen">
-      {/* サイドバー */}
       <aside className="w-64 border-r bg-muted/40">
         <div className="flex h-16 items-center border-b px-6">
           <h2 className="text-lg font-semibold">管理画面</h2>
@@ -89,7 +67,6 @@ export default async function AdminLayout({
         </nav>
       </aside>
 
-      {/* メインコンテンツ */}
       <main className="flex-1 overflow-auto">
         <div className="container py-6">{children}</div>
       </main>

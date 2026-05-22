@@ -1,10 +1,14 @@
-import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase/server"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { Card } from "@/components/ui/card"
 import { Users, Shield, Flag, TrendingUp, MessageSquare, Ban, UserPlus, Eye, Heart, Mail } from "lucide-react"
 import Link from "next/link"
 import { AdminStatCardLink } from "@/components/admin/admin-stat-card-link"
+import {
+  buildPendingReportCardHref,
+  fetchAdminHeaderProfile,
+  fetchLatestPendingReportId,
+} from "@/lib/admin/auth"
 import { TABLES } from "@/lib/supabase/table-names"
 
 export default async function AdminDashboardPage() {
@@ -13,15 +17,8 @@ export default async function AdminDashboardPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/login")
-  }
-
-  const { data: profile } = await supabase.from(TABLES.PROFILES).select("*").eq("id", user.id).single()
-
-  if (!profile || !profile.is_admin) {
-    redirect("/dashboard")
-  }
+  // 認可は app/admin/layout.tsx で実施
+  const profile = user ? await fetchAdminHeaderProfile(user.id) : null
 
   const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 
@@ -37,6 +34,8 @@ export default async function AdminDashboardPage() {
     .from(TABLES.REPORTS)
     .select("*", { count: "exact", head: true })
     .eq("status", "pending")
+
+  const latestPendingReportId = user ? await fetchLatestPendingReportId(user.id) : null
 
   let totalMatches = 0
   let newMatchesToday = 0
@@ -186,7 +185,7 @@ export default async function AdminDashboardPage() {
       icon: Flag,
       color: "text-red-600",
       bgColor: "bg-red-50",
-      href: "/admin/reports?status=pending",
+      href: buildPendingReportCardHref(latestPendingReportId),
     },
     {
       title: "総マッチ数",

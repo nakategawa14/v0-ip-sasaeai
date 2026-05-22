@@ -23,6 +23,7 @@ import { useToast } from "@/hooks/use-toast"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, Ban, CheckCircle, XCircle } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
+import { isValidReportId } from "@/lib/admin/auth"
 import { cn } from "@/lib/utils"
 
 interface Report {
@@ -74,6 +75,12 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
     const href = query ? `${pathname}?${query}` : pathname
     router.replace(href)
     router.refresh()
+  }
+
+  const openReportDetail = (reportId: string) => {
+    const id = reportId.trim()
+    if (!isValidReportId(id)) return
+    router.push(`/admin/reports/${id}`)
   }
 
   const getProfileImage = (profileImages: string | string[] | undefined) => {
@@ -204,12 +211,30 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
         {reports && reports.length > 0 ? (
           reports.map((report) => {
             const reportId = typeof report.id === "string" ? report.id.trim() : ""
-            const detailHref = reportId ? `/admin/reports/${reportId}` : ""
+            const detailHref = isValidReportId(reportId) ? `/admin/reports/${reportId}` : ""
             const reporterImage = getProfileImage(report.reporter?.profile_images)
             const reportedImage = getProfileImage(report.reported_user?.profile_images)
 
             return (
-              <Card key={report.id} className="p-6">
+              <Card
+                key={report.id}
+                className={cn(
+                  "p-6",
+                  detailHref && "cursor-pointer transition-shadow hover:shadow-md",
+                )}
+                onClick={() => {
+                  if (detailHref) openReportDetail(reportId)
+                }}
+                onKeyDown={(event) => {
+                  if (!detailHref) return
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    openReportDetail(reportId)
+                  }
+                }}
+                role={detailHref ? "link" : undefined}
+                tabIndex={detailHref ? 0 : undefined}
+              >
                 <div className="mb-4 flex items-start justify-between">
                   <div className="flex-1">
                     <div className="mb-3 flex items-center gap-3">
@@ -271,25 +296,46 @@ export function ReportList({ reports, currentStatus }: ReportListProps) {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2" onClick={(event) => event.stopPropagation()}>
                   <span className="inline-flex items-center rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
                     {report.id ? report.id : "IDがありません"}
                   </span>
                   {detailHref ? (
-                    <Link href={detailHref} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openReportDetail(reportId)}
+                    >
                       詳細ページ
-                    </Link>
+                    </Button>
                   ) : (
                     <Button variant="outline" size="sm" disabled>
                       詳細ページ（IDなし）
                     </Button>
                   )}
-                  <Button type="button" variant="outline" size="sm" onClick={() => handleReview(report)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      handleReview(report)
+                    }}
+                  >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     確認・対応
                   </Button>
                   {report.status === "pending" && (
-                    <Button type="button" variant="destructive" size="sm" onClick={() => handleBan(report)}>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        handleBan(report)
+                      }}
+                    >
                       <Ban className="h-4 w-4 mr-2" />
                       BANする
                     </Button>

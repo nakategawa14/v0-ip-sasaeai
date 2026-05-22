@@ -1,99 +1,91 @@
-"use client"
-
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { notFound } from "next/navigation"
+import { fetchAdminHeaderProfile, isValidReportId, verifyAdminAccess } from "@/lib/admin/auth"
+import { createServerSupabaseClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
-import { createBrowserSupabaseClient } from "@/lib/supabase/client"
 import { TABLES } from "@/lib/supabase/table-names"
-import { Alert } from "@/components/ui/alert"
 import { ReportDetailView, type SasaeaiReportDetail } from "@/components/admin/report-detail-view"
 
-export default function AdminReportDetailPage() {
-  const params = useParams<{ id?: string | string[] }>()
-  const rawId = params?.id
-  const id = Array.isArray(rawId) ? rawId[0] : rawId
-  const [headerProfile, setHeaderProfile] = useState<any>(null)
-  const [report, setReport] = useState<SasaeaiReportDetail | null>(null)
-  const [moderationLogs, setModerationLogs] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+async function fetchReportDetailForAdmin(reportId: string) {
+  try {
+    const service = createServiceRoleClient()
+    const { data: reportRow, error } = await service
+      .from(TABLES.REPORTS)
+      .select("*")
+      .eq("id", reportId)
+      .maybeSingle()
 
-  useEffect(() => {
-    if (!id) {
-      setError("通報IDがありません")
-      setLoading(false)
-      return
+    if (error || !reportRow) {
+      return null
     }
 
-    let alive = true
-    setLoading(true)
-    setError(null)
+    const relatedUserIds = [reportRow.reporter_id, reportRow.reported_user_id].filter(Boolean) as string[]
+    let reporter: SasaeaiReportDetail["reporter"] = null
+    let reportedUser: SasaeaiReportDetail["reported_user"] = null
 
-    void (async () => {
-      const supabase = createBrowserSupabaseClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+    if (relatedUserIds.length > 0) {
+      const { data: profileRows } = await service
+        .from(TABLES.PROFILES)
+        .select("id, user_id, nickname, email, profile_images, is_active, status")
+        .in("id", relatedUserIds)
 
-      if (!user) {
-        if (alive) {
-          setError("ログインが必要です")
-          setLoading(false)
-        }
-        return
-      }
-
-      const [{ data: profile }, { data: reportRow, error: reportError }, { data: logs }] = await Promise.all([
-        supabase.from(TABLES.PROFILES).select("*").eq("id", user.id).maybeSingle(),
-        supabase.from(TABLES.REPORTS).select("*").eq("id", id).maybeSingle(),
-        supabase.from(TABLES.MODERATION_LOGS).select("*").eq("target_report_id", id).order("created_at", { ascending: false }),
-      ])
-
-      if (!alive) return
-
-      setHeaderProfile(profile ?? null)
-      setModerationLogs(logs ?? [])
-
-      if (reportError || !reportRow) {
-        setError(reportError?.message ?? "通報詳細の取得に失敗しました")
-        setReport(null)
-      } else {
-        const relatedUserIds = [reportRow.reporter_id, reportRow.reported_user_id].filter(Boolean) as string[]
-        let reporter: any = null
-        let reportedUser: any = null
-
-        if (relatedUserIds.length > 0) {
-          const { data: profileRows } = await supabase
-            .from(TABLES.PROFILES)
-            .select("id, user_id, nickname, email, profile_images, is_active, status")
-            .in("id", relatedUserIds)
-
-          reporter = profileRows?.find((p: { id: string }) => p.id === reportRow.reporter_id) ?? null
-          reportedUser = profileRows?.find((p: { id: string }) => p.id === reportRow.reported_user_id) ?? null
-        }
-
-        setReport({
-          ...(reportRow as SasaeaiReportDetail),
-          reporter,
-          reported_user: reportedUser,
-        })
-      }
-
-      setLoading(false)
-    })()
-
-    return () => {
-      alive = false
+      reporter = profileRows?.find((p) => p.id === reportRow.reporter_id) ?? null
+      reportedUser = profileRows?.find((p) => p.id === reportRow.reported_user_id) ?? null
     }
-  }, [id])
+
+    const { data: logs } = await service
+      .from(TABLES.MODERATION_LOGS)
+      .select("*")
+      .eq("target_report_id", reportId)
+      .order("created_at", { ascending: false })
+
+    return {
+      report: {
+        ...(reportRow as SasaeaiReportDetail),
+        reporter,
+        reported_user: reportedUser,
+      },
+      moderationLogs: logs ?? [],
+    }
+  } catch (e) {
+    console.error("[admin/reports/[id]] service role fetch failed:", e)
+    return null
+  }
+}
+
+export default async function AdminReportDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id: rawId } = await params
+  const reportId = rawId?.trim()
+
+  if (!isValidReportId(reportId)) {
+    notFound()
+  }
+
+  const supabase = await createServerSupabaseClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user || !(await verifyAdminAccess(user.id))) {
+    notFound()
+  }
+
+  const profile = await fetchAdminHeaderProfile(user.id)
+  const detail = await fetchReportDetailForAdmin(reportId)
+
+  if (!detail) {
+    notFound()
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50">
-      <DashboardHeader profile={headerProfile} />
+      <DashboardHeader profile={profile} />
       <main className="container mx-auto px-4 py-8">
-        {loading ? <div>読み込み中...</div> : null}
-        {!loading && error ? <Alert variant="destructive">{error}</Alert> : null}
-        {!loading && !error && report ? <ReportDetailView report={report} moderationLogs={moderationLogs} /> : null}
+        <ReportDetailView report={detail.report} moderationLogs={detail.moderationLogs} />
       </main>
     </div>
   )
