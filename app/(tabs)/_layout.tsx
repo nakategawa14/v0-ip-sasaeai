@@ -1,0 +1,117 @@
+/**
+ * タブレイアウト: すべての Hook（`useClientOnlyValue` 含む）は早期 return の前に呼ぶ。
+ * `headerShown` の SSR/クライアント差はフック側で吸収し、認証ゲート通過後のみ Tabs を描画する。
+ */
+import React from 'react';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Link, Redirect, Tabs } from 'expo-router';
+import { Pressable } from 'react-native';
+
+import Colors from '@/constants/Colors';
+import { useColorScheme } from '@/components/useColorScheme';
+import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useAuth } from '@/contexts/AuthContext';
+
+// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+function TabBarIcon(props: {
+  name: React.ComponentProps<typeof FontAwesome>['name'];
+  color: string;
+}) {
+  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+}
+
+export default function TabLayout() {
+  const colorScheme = useColorScheme();
+  const headerShown = useClientOnlyValue(false, true);
+  const { session, initialized, accessGateResolved } = useAuth();
+
+  if (!initialized || (session && !accessGateResolved)) {
+    return null;
+  }
+
+  if (!session) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  return (
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        // Disable the static render of the header on web
+        // to prevent a hydration error in React Navigation v6.
+        headerShown,
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'さがす',
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
+          headerRight: () => (
+            <Link href="/support" asChild>
+              <Pressable accessibilityLabel="設定・ヘルプ">
+                {({ pressed }) => (
+                  <FontAwesome
+                    name="cog"
+                    size={24}
+                    color={Colors[colorScheme ?? 'light'].text}
+                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                  />
+                )}
+              </Pressable>
+            </Link>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'ホーム',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          headerRight: () => (
+            <Link href="/support" asChild>
+              <Pressable accessibilityLabel="設定・ヘルプ">
+                {({ pressed }) => (
+                  <FontAwesome
+                    name="cog"
+                    size={24}
+                    color={Colors[colorScheme ?? 'light'].text}
+                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                  />
+                )}
+              </Pressable>
+            </Link>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'メッセージ',
+          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'プロフィール',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="user"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
+    </Tabs>
+  );
+}

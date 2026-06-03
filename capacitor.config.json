@@ -1,0 +1,6 @@
+{
+    "appId": "com.sasaeai.app",
+    "appName": "ささえ愛",
+    "webDir": "dist",
+    "bundledWebRuntime": false
+  }
