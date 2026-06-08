@@ -1,14 +1,8 @@
 {
   "builds": [
     {
-      "src": "sasaeai-clean/package.json",
+      "src": "package.json",
       "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "sasaeai-clean/$1"
     }
   ]
 }
