@@ -55,6 +55,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function ProfileScreen() {
   const router = useRouter()
   const { user } = useAuth()
+  console.log("PROFILE SCREEN USER ID:", user?.id)
   const [profile, setProfile] = useState<SasaeaiProfileRow | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
