@@ -135,11 +135,10 @@ export function getProfileImageUrl(profile: SasaeaiProfileRow): string | null {
 
 export function getSubImageUrls(profile: SasaeaiProfileRow): string[] {
   const out: string[] = []
-  if (typeof profile.profile_image_2 === "string" && isLikelyImageFetchUrl(profile.profile_image_2)) {
-    out.push(profile.profile_image_2.trim())
-  }
-  if (typeof profile.profile_image_3 === "string" && isLikelyImageFetchUrl(profile.profile_image_3)) {
-    out.push(profile.profile_image_3.trim())
+  for (const s of profileImagesAsUrlCandidates(profile.profile_images).slice(1, 3)) {
+    if (isLikelyImageFetchUrl(s)) {
+      out.push(finalizeDisplayImageUrl(s))
+    }
   }
   return out
 }
