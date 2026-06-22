@@ -31,7 +31,8 @@ import {
   USER_TYPES,
 } from "@/lib/constants/profile-mobile"
 import { TABLES } from "@/lib/constants/tables"
-import { isLikelyImageFetchUrl } from "@/lib/profile/display"
+import { isLikelyImageFetchUrl, profileImagesAsUrlCandidates } from "@/lib/profile/display"
+import { uploadProfileSlotFromUri } from "@/lib/profile/uploadProfileImage"
 import { supabase } from "@/lib/supabase"
 import { brandScreen } from "@/lib/theme/brandScreen"
 
@@ -47,6 +48,22 @@ function parseStringArray(val: unknown): string[] {
     }
   }
   return []
+}
+
+async function resolveSlotImageUrl(
+  userId: string,
+  slot: 1 | 2 | 3,
+  pendingUri: string | null,
+  remoteImage: string,
+): Promise<string | null> {
+  if (pendingUri) {
+    return await uploadProfileSlotFromUri(userId, slot, pendingUri)
+  }
+  const trimmed = remoteImage.trim()
+  if (trimmed && isLikelyImageFetchUrl(trimmed)) {
+    return trimmed
+  }
+  return null
 }
 
 function ChipRow({
@@ -148,12 +165,10 @@ export default function ProfileEditScreen() {
     setEmploymentType(String(data.employment_type ?? ""))
     setSupporterMessage(String(data.supporter_message ?? ""))
     setSecretMode(data.is_secret_mode === true)
-    const s1 = typeof data.profile_image_1 === "string" ? data.profile_image_1.trim() : ""
-    const s2 = typeof data.profile_image_2 === "string" ? data.profile_image_2.trim() : ""
-    const s3 = typeof data.profile_image_3 === "string" ? data.profile_image_3.trim() : ""
-    setRemoteImage1(s1)
-    setRemoteImage2(s2)
-    setRemoteImage3(s3)
+    const imgArr = profileImagesAsUrlCandidates(data.profile_images)
+    setRemoteImage1(imgArr[0]?.trim() ?? "")
+    setRemoteImage2(imgArr[1]?.trim() ?? "")
+    setRemoteImage3(imgArr[2]?.trim() ?? "")
     setPendingUri1(null)
     setPendingUri2(null)
     setPendingUri3(null)
@@ -212,7 +227,7 @@ export default function ProfileEditScreen() {
   }
 
   const save = async () => {
-    console.log("SAVE BUTTON CLICKED")
+    console.log("[SAVE START]")
     if (!user?.id || !user.email) {
       Alert.alert("エラー", "ログイン情報がありません")
       return
@@ -246,11 +261,24 @@ export default function ProfileEditScreen() {
 
       const nextPrefecture = prefecture.trim()
       const nextCity = city.trim() || null
-      const payload: { prefecture: string; city: string | null } = {
+
+      const profileImages: string[] = []
+      for (const { slot, pending, remote } of [
+        { slot: 1 as const, pending: pendingUri1, remote: remoteImage1 },
+        { slot: 2 as const, pending: pendingUri2, remote: remoteImage2 },
+        { slot: 3 as const, pending: pendingUri3, remote: remoteImage3 },
+      ]) {
+        const url = await resolveSlotImageUrl(user.id, slot, pending, remote)
+        if (url) profileImages.push(url)
+      }
+      console.log("[SAVE IMAGES]", profileImages)
+
+      const payload = {
         prefecture: nextPrefecture,
         city: nextCity,
+        profile_images: profileImages.length > 0 ? profileImages : null,
       }
-      console.log("PAYLOAD:", payload)
+      console.log("[SAVE PAYLOAD]", payload)
 
       const { error: upErr } = await supabase.from(TABLES.PROFILES).update(payload).eq("id", user.id)
       if (upErr) {
@@ -259,11 +287,11 @@ export default function ProfileEditScreen() {
         Alert.alert("エラー", m)
         return
       }
-      // 成功時はプロフィール画面へ戻る
+      console.log("[SAVE SUCCESS]")
       router.replace("/(tabs)/profile")
     } catch (e) {
+      console.error("[SAVE ERROR]", e)
       const message = e instanceof Error ? e.message : String(e)
-      console.error("[profile/edit] save failed:", e)
       setError(message)
       Alert.alert("エラー", message)
     } finally {
