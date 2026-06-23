@@ -35,6 +35,7 @@ import {
   calculateAge,
   genderLabel,
   getProfileImageUrl,
+  getSubImageUrls,
   parseProfileTags,
   type SasaeaiProfileRow,
 } from "@/lib/profile/display"
@@ -441,6 +442,7 @@ export default function PublicProfilePreviewScreen() {
   }
 
   const img = getProfileImageUrl(profile)
+  const subImages = getSubImageUrls(profile)
   const age = profile.birth_date && typeof profile.birth_date === "string" ? calculateAge(profile.birth_date) : undefined
   const tags = parseProfileTags(profile)
   const isSelf = user?.id === profile.id
@@ -492,6 +494,17 @@ export default function PublicProfilePreviewScreen() {
                 ? "あなたからのいいねは送信済みです。相手からもいいねがあるとマッチ成立です。"
                 : "気になる相手にハートを送りましょう。相互いいねでマッチが成立します。"}
             </Text>
+          </View>
+        ) : null}
+
+        {subImages.length > 0 ? (
+          <View style={[brandScreen.card, styles.block]}>
+            <Text style={brandScreen.sectionTitle}>その他の写真</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subImgRow}>
+              {subImages.map((uri, i) => (
+                <Image key={uri + i} source={{ uri }} style={styles.subImage} />
+              ))}
+            </ScrollView>
           </View>
         ) : null}
 
@@ -712,6 +725,16 @@ const styles = StyleSheet.create({
   likeBtnText: { color: "#fff", fontSize: 18, fontWeight: "900" },
   likeHint: { marginTop: 10, fontSize: 13, color: "#6b7280", lineHeight: 20, textAlign: "center", paddingHorizontal: 8 },
   block: { marginTop: 14 },
+  subImgRow: {
+    gap: 10,
+    paddingVertical: 4,
+  },
+  subImage: {
+    width: 112,
+    height: 112,
+    borderRadius: 10,
+    backgroundColor: "#f3f4f6",
+  },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tag: {
     backgroundColor: "#fce7f3",
