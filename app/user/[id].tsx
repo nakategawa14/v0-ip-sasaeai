@@ -443,6 +443,8 @@ export default function PublicProfilePreviewScreen() {
 
   const img = getProfileImageUrl(profile)
   const subImages = getSubImageUrls(profile)
+  console.log("[PROFILE_IMAGES]", profile.profile_images)
+  console.log("[SUB_IMAGES]", subImages)
   const age = profile.birth_date && typeof profile.birth_date === "string" ? calculateAge(profile.birth_date) : undefined
   const tags = parseProfileTags(profile)
   const isSelf = user?.id === profile.id
